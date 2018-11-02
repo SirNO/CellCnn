@@ -19,7 +19,9 @@ from scipy.cluster.hierarchy import linkage
 from scipy.cluster.hierarchy import fcluster
 from scipy import stats
 from scipy.sparse import coo_matrix
-import fcm
+
+from fcsparser import parse
+
 try:
     import igraph
 except ImportError:
@@ -40,9 +42,9 @@ def get_data(indir, info, marker_names, do_arcsinh, cofactor):
     sample_list = []
     for fname in fnames:
         full_path = os.path.join(indir, fname)
-        fcs = fcm.loadFCS(full_path, transform=None, auto_comp=False)
-        marker_idx = [fcs.channels.index(name) for name in marker_names]
-        x = np.asarray(fcs)[:, marker_idx]
+        fcs = parse(full_path)
+        x = [fcs.channels.index(name) for name in marker_names]
+        x = np.asarray(x)
         if do_arcsinh:
             x = ftrans(x, cofactor)
         sample_list.append(x)

@@ -24,7 +24,7 @@ from keras.layers import Input, Dense, Lambda, Activation, Dropout
 from keras.layers.convolutional import Convolution1D
 from keras.models import Model
 from keras.optimizers import Adam
-from keras.regularizers import l1l2
+from keras.regularizers import l1_l2
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.utils.np_utils import to_categorical
 
@@ -527,7 +527,7 @@ def build_model(ncell, nmark, nfilter, coeff_l1, coeff_l2, coeff_activity,
 
     # the filters
     conv = Convolution1D(nfilter, 1, activation='linear',
-                         W_regularizer=l1l2(l1=coeff_l1, l2=coeff_l2),
+                         W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                          activity_regularizer=activity_KL(l=coeff_activity, p=0.05),
                          name='conv1')(data_input)
     conv = Activation('relu')(conv)
@@ -541,10 +541,10 @@ def build_model(ncell, nmark, nfilter, coeff_l1, coeff_l2, coeff_activity,
     # network prediction output
     if not regression:
         output = Dense(n_classes, activation='softmax',
-                       W_regularizer=l1l2(l1=coeff_l1, l2=coeff_l2),
+                       W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                        name='output')(pooled)
     else:
-        output = Dense(1, activation='tanh', W_regularizer=l1l2(l1=coeff_l1, l2=coeff_l2),
+        output = Dense(1, activation='tanh', W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                        name='output')(pooled)
     model = Model(input=data_input, output=output)
 
