@@ -8,7 +8,7 @@ This module supports a CellCnn analysis from the command line.
 import argparse
 import os
 import sys
-import cPickle as pickle
+import pickle as pickle
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import StratifiedKFold, KFold
@@ -70,7 +70,7 @@ def main():
                         help='list of choices (percentage of multi-cell input) for top-k max pooling',
                         default=[0.01, 1, 5, 20, 100])
     parser.add_argument('--nfilter_choice', nargs='+', type=int,
-                        help='list of choices for number of filters', default=range(3, 10))
+                        help='list of choices for number of filters', default=list(range(3, 10)))
     parser.add_argument('--learning_rate', type=float, default=0.005,
                         help='learning rate for the Adam optimization algorithm')
     parser.add_argument('--coeff_l1', type=float, default=0,
@@ -146,13 +146,13 @@ def main():
     train_phenotypes = [phenotypes[i] for i in train]
     valid_phenotypes = [phenotypes[i] for i in val]
 
-    print '\nSamples used for model training:'
+    print('\nSamples used for model training:')
     for i in train:
-        print fcs_info[i]
-    print '\nSamples used for validation:'
+        print(fcs_info[i])
+    print('\nSamples used for validation:')
     for i in val:
-        print fcs_info[i]
-    print
+        print(fcs_info[i])
+    print()
 
     # always generate multi-cell inputs on a per-sample basis for regression
     if args.regression:

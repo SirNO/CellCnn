@@ -93,7 +93,7 @@ class CellCnn(object):
 
     def __init__(self, ncell=200, nsubset=1000, per_sample=False, subset_selection='random',
                  maxpool_percentages=[0.01, 1., 5., 20., 100.], scale=True, quant_normed=False,
-                 nfilter_choice=range(3, 10), dropout='auto', dropout_p=.5,
+                 nfilter_choice=list(range(3, 10)), dropout='auto', dropout_p=.5,
                  coeff_l1=0, coeff_l2=0.0001, coeff_activity=0, learning_rate=None,
                  regression=False, max_epochs=20, patience=5, nrun=15, dendrogram_cutoff=0.4,
                  accur_thres=.95, verbose=1):
@@ -193,7 +193,7 @@ class CellCnn(object):
 
         if ncell_per_sample is None:
             ncell_per_sample = np.min([x.shape[0] for x in new_samples])
-        print 'Predictions based on multi-cell inputs containing %d cells.' % ncell_per_sample
+        print('Predictions based on multi-cell inputs containing %d cells.' % ncell_per_sample)
 
         # z-transform the new samples if we did that for the training samples
         scaler = self.results['scaler']
@@ -237,7 +237,7 @@ def train_model(train_samples, train_phenotypes, outdir,
                 valid_samples=None, valid_phenotypes=None, generate_valid_set=True,
                 scale=True, quant_normed=False, nrun=20, regression=False,
                 ncell=200, nsubset=1000, per_sample=False, subset_selection='random',
-                maxpool_percentages=[0.01, 1., 5., 20., 100.], nfilter_choice=range(3, 10),
+                maxpool_percentages=[0.01, 1., 5., 20., 100.], nfilter_choice=list(range(3, 10)),
                 learning_rate=None, coeff_l1=0, coeff_l2=1e-4, dropout='auto', dropout_p=.5,
                 coeff_activity=0, max_epochs=20, patience=5,
                 dendrogram_cutoff=0.4, accur_thres=.95, verbose=1):
@@ -246,7 +246,7 @@ def train_model(train_samples, train_phenotypes, outdir,
     mkdir_p(outdir)
 
     if nrun < 3:
-        print 'The nrun argument should be >= 3, setting it to 3.'
+        print('The nrun argument should be >= 3, setting it to 3.')
         nrun = 3
 
     # copy the list of samples so that they are not modified in place
@@ -269,11 +269,11 @@ def train_model(train_samples, train_phenotypes, outdir,
     # merge all input samples (X_train, X_valid)
     # and generate an identifier for each of them (train_id, valid_id)
     if (valid_samples is None) and (not generate_valid_set):
-        sample_ids = range(len(train_phenotypes))
+        sample_ids = list(range(len(train_phenotypes)))
         X_train, id_train = combine_samples(train_samples, sample_ids)
 
     elif (valid_samples is None) and generate_valid_set:
-        sample_ids = range(len(train_phenotypes))
+        sample_ids = list(range(len(train_phenotypes)))
         X, sample_id = combine_samples(train_samples, sample_ids)
         valid_phenotypes = train_phenotypes
 
@@ -287,9 +287,9 @@ def train_model(train_samples, train_phenotypes, outdir,
         X_valid, id_valid = X[valid_indices], sample_id[valid_indices]
 
     else:
-        sample_ids = range(len(train_phenotypes))
+        sample_ids = list(range(len(train_phenotypes)))
         X_train, id_train = combine_samples(train_samples, sample_ids)
-        sample_ids = range(len(valid_phenotypes))
+        sample_ids = list(range(len(valid_phenotypes)))
         X_valid, id_valid = combine_samples(valid_samples, sample_ids)
 
     if quant_normed:
@@ -321,7 +321,7 @@ def train_model(train_samples, train_phenotypes, outdir,
     nmark = X_train.shape[1]
 
     # generate multi-cell inputs
-    print 'Generating multi-cell inputs...'
+    print('Generating multi-cell inputs...')
 
     if subset_selection == 'outlier':
         # here we assume that class 0 is always the control class
@@ -391,7 +391,7 @@ def train_model(train_samples, train_phenotypes, outdir,
                     nsubset_list.append(nsubset / np.sum(valid_phenotypes == pheno))
                 X_v, y_v = generate_subsets(X_valid, valid_phenotypes, id_valid,
                                             nsubset_list, ncell, per_sample)
-    print 'Done.'
+    print('Done.')
 
     ## neural network configuration ##
     # batch size
@@ -418,7 +418,7 @@ def train_model(train_samples, train_phenotypes, outdir,
 
     for irun in range(nrun):
         if verbose:
-            print 'training network: %d' % (irun + 1)
+            print('training network: %d' % (irun + 1))
         if learning_rate is None:
             lr = 10 ** np.random.uniform(-3, -2)
             config['learning_rate'].append(lr)
@@ -426,13 +426,13 @@ def train_model(train_samples, train_phenotypes, outdir,
         # choose number of filters for this run
         nfilter = np.random.choice(nfilter_choice)
         config['nfilter'].append(nfilter)
-        print 'Number of filters: %d' % nfilter
+        print('Number of filters: %d' % nfilter)
 
         # choose number of cells pooled for this run
         mp = maxpool_percentages[irun % len(maxpool_percentages)]
         config['maxpool_percentage'].append(mp)
         k = max(1, int(mp/100. * ncell))
-        print 'Cells pooled: %d' % k
+        print('Cells pooled: %d' % k)
 
         # build the neural network
         model = build_model(ncell, nmark, nfilter,
@@ -461,14 +461,14 @@ def train_model(train_samples, train_phenotypes, outdir,
 
             if not regression:
                 valid_metric = model.evaluate(float32(X_v), int32(y_v))[-1]
-                print 'Best validation accuracy: %.2f' % valid_metric
+                print('Best validation accuracy: %.2f' % valid_metric)
                 accuracies[irun] = valid_metric
 
             else:
                 train_metric = model.evaluate(float32(X_tr), float32(y_tr), batch_size=bs)
-                print 'Best train loss: %.2f' % train_metric
+                print('Best train loss: %.2f' % train_metric)
                 valid_metric = model.evaluate(float32(X_v), float32(y_v), batch_size=bs)
-                print 'Best validation loss: %.2f' % valid_metric
+                print('Best validation loss: %.2f' % valid_metric)
                 accuracies[irun] = - valid_metric
 
             # extract the network parameters

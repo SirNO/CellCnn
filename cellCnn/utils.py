@@ -111,7 +111,7 @@ def cluster_profiles(param_dict, nmark, accuracies, accur_thres=.99,
         accur_thres = np.sort(accuracies)[-3]
 
     # combine filters from multiple models
-    for i, params in param_dict.items():
+    for i, params in list(param_dict.items()):
         if accuracies[i] >= accur_thres:
             W_tot = keras_param_vector(params)
             accum.append(W_tot)
@@ -122,7 +122,7 @@ def cluster_profiles(param_dict, nmark, accuracies, accur_thres=.99,
     clusters = fcluster(Z, dendrogram_cutoff, criterion='distance') - 1
     c = Counter(clusters)
     cons = []
-    for key, val in c.items():
+    for key, val in list(c.items()):
         if val > 1:
             members = w_strong[clusters == key]
             cons.append(representative(members, stop=nmark+1))
@@ -195,7 +195,7 @@ def generate_subsets(X, pheno_map, sample_id, nsubsets, ncell,
 
     # mix them
     data_list, y_list = [], []
-    for y_i, x_i in S.items():
+    for y_i, x_i in list(S.items()):
         data_list.append(x_i)
         y_list.append(pheno_map[y_i] * np.ones(x_i.shape[0], dtype=int))
 
@@ -211,7 +211,7 @@ def per_sample_biased_subsets(X, x_ctrl, nsubsets, ncell_final, to_keep, ratio_b
     nc_unbiased = ncell_final - nc_biased
 
     for i in range(nsubsets):
-        print i
+        print(i)
         x_unbiased = random_subsample(X, nc_unbiased)
         if (i % 100) == 0:
             x_outlier, outlierness = outlier_subsample(X, x_ctrl, to_keep)
@@ -233,7 +233,7 @@ def generate_biased_subsets(X, pheno_map, sample_id, x_ctrl, nsubset_ctrl, nsubs
 
     # mix them
     data_list, y_list = [], []
-    for y_i, x_i in S.items():
+    for y_i, x_i in list(S.items()):
         data_list.append(x_i)
         y_list.append(pheno_map[y_i] * np.ones(x_i.shape[0], dtype=int))
     Xt = np.vstack(data_list)

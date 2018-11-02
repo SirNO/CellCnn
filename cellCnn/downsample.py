@@ -122,9 +122,9 @@ def knn_dist_memory_optimized(test_data, train_data, s):
     bs = 500
     test_kNN_dist = np.zeros(nobs_test)
 
-    print 'going up to: %d' % (nobs_test/bs + 1)
+    print('going up to: %d' % (nobs_test/bs + 1))
     for ii in range(nobs_test/bs + 1):
-        print ii
+        print(ii)
         # is this a full batch or is it the last one?
         if (ii+1)*bs < nobs_test:
             end = (ii+1)*bs

@@ -152,7 +152,7 @@ def plot_results(results, samples, phenotypes, labels, outdir,
     nmark = samples[0].shape[1]
 
     if results['selected_filters'] is not None:
-        print 'Loading the weights of consensus filters.'
+        print('Loading the weights of consensus filters.')
         filters = results['selected_filters']
     else:
         sys.exit('Consensus filters were not found.')
@@ -177,7 +177,7 @@ def plot_results(results, samples, phenotypes, labels, outdir,
     if results['scaler'] is not None:
         x = results['scaler'].transform(x)
 
-    print 'Computing t-SNE projection...'
+    print('Computing t-SNE projection...')
     tsne_idx = np.random.choice(x.shape[0], tsne_ncell)
     x_for_tsne = x[tsne_idx].copy()
     x_tsne = TSNE(n_components=2).fit_transform(x_for_tsne)
@@ -252,14 +252,14 @@ def plot_results(results, samples, phenotypes, labels, outdir,
                                  group_a, group_b, group_names, regression)
         else:
             if clustering == 'louvain':
-                print 'Creating a k-NN graph with %d/%d cells...' % (x1.shape[0], x.shape[0])
+                print('Creating a k-NN graph with %d/%d cells...' % (x1.shape[0], x.shape[0]))
                 k = 10
                 G = create_graph(x1, k, g1, add_filter_response)
-                print 'Identifying cell communities...'
+                print('Identifying cell communities...')
                 cl = G.community_fastgreedy()
                 clusters = np.array(cl.as_clustering().membership)
             else:
-                print 'Clustering using the dbscan algorithm...'
+                print('Clustering using the dbscan algorithm...')
                 eps = set_dbscan_eps(x1, os.path.join(outdir, 'kNN_distances.png'))
                 cl = DBSCAN(eps=eps, min_samples=5, metric='l1')
                 clusters = cl.fit_predict(x1)
@@ -268,7 +268,7 @@ def plot_results(results, samples, phenotypes, labels, outdir,
             c = Counter(clusters)
             cluster_ids = []
             min_cells = int(min_cluster_freq * x1.shape[0])
-            for key, val in c.items():
+            for key, val in list(c.items()):
                 if (key != -1) and (val > min_cells):
                     cluster_ids.append(key)
 
@@ -296,7 +296,7 @@ def plot_results(results, samples, phenotypes, labels, outdir,
                 plot_selected_subset(xc, zc, x, labels, sample_sizes, phenotypes,
                                      outdir, suffix, stat_test, log_yscale,
                                      group_a, group_b, group_names, regression)
-    print 'Done.\n'
+    print('Done.\n')
     return return_filters
 
 
@@ -321,8 +321,8 @@ def discriminative_filters(results, outdir, filter_diff_thres, positive_filters_
         if show_filters:
             plt.figure()
             sns.set_style('whitegrid')
-            plt.plot(range(len(filter_diff)), filter_diff, '--')
-            plt.xticks(range(len(filter_diff)), ['filter %d' % i for i in sorted_idx],
+            plt.plot(list(range(len(filter_diff))), filter_diff, '--')
+            plt.xticks(list(range(len(filter_diff))), ['filter %d' % i for i in sorted_idx],
                        rotation='vertical')
             plt.ylabel('average cell filter response difference between classes')
             sns.despine()
@@ -348,8 +348,8 @@ def discriminative_filters(results, outdir, filter_diff_thres, positive_filters_
         if show_filters:
             plt.figure()
             sns.set_style('whitegrid')
-            plt.plot(range(len(filter_diff)), filter_diff, '--')
-            plt.xticks(range(len(filter_diff)), ['filter %d' % i for i in sorted_idx],
+            plt.plot(list(range(len(filter_diff))), filter_diff, '--')
+            plt.xticks(list(range(len(filter_diff))), ['filter %d' % i for i in sorted_idx],
                        rotation='vertical')
             plt.ylabel('Kendalls tau')
             sns.despine()
@@ -360,7 +360,7 @@ def discriminative_filters(results, outdir, filter_diff_thres, positive_filters_
     # if no validation samples were provided, keep all consensus filters
     else:
         filters = results['selected_filters']
-        keep_idx = range(filters.shape[0])
+        keep_idx = list(range(filters.shape[0]))
     return keep_idx
 
 
@@ -369,7 +369,7 @@ def plot_filters(results, labels, outdir):
     nmark = len(labels)
     # plot the filter weights of the best network
     w_best = results['w_best_net']
-    idx_except_bias = np.array(range(nmark) + range(nmark+1, w_best.shape[1]))
+    idx_except_bias = np.array(list(range(nmark)) + list(range(nmark+1, w_best.shape[1])))
     nc = w_best.shape[1] - (nmark+1)
     labels_except_bias = labels + ['out %d' % i for i in range(nc)]
     w_best = w_best[:, idx_except_bias]
@@ -392,7 +392,7 @@ def plot_filters(results, labels, outdir):
 
 def plot_nn_weights(w, x_labels, fig_path, row_linkage=None, y_labels=None, fig_size=(10, 3)):
     if y_labels is None:
-        y_labels = range(w.shape[0])
+        y_labels = list(range(w.shape[0]))
 
     if w.shape[0] > 1:
         plt.figure(figsize=fig_size)
@@ -481,10 +481,10 @@ def plot_selected_subset(xc, zc, x, labels, sample_sizes, phenotypes, outdir, su
             else:
                 group_names = ['group %d' % (y_i+1) for y_i in range(n_pheno)]
         box_grade = []
-        for group_name, y_i in zip(group_names, range(n_pheno)):
+        for group_name, y_i in zip(group_names, list(range(n_pheno))):
             box_grade += [group_name] * len(frequencies[y_i])
         box_data = np.hstack([np.array(frequencies[y_i]) for y_i in range(n_pheno)])
-        box = pd.DataFrame(np.array(zip(box_grade, box_data)),
+        box = pd.DataFrame(np.array(list(zip(box_grade, box_data))),
                            columns=['group', 'selected population frequency (%)'])
         box['selected population frequency (%)'] = \
             box['selected population frequency (%)'].astype('float64')
@@ -771,5 +771,5 @@ def plot_tsne_per_sample(z_list, data_labels, fig_dir, fig_size=(9, 9),
 def clean_axis(ax):
     ax.get_xaxis().set_ticks([])
     ax.get_yaxis().set_ticks([])
-    for sp in ax.spines.values():
+    for sp in list(ax.spines.values()):
         sp.set_visible(False)
