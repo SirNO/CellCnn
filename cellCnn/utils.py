@@ -42,8 +42,8 @@ def get_data(indir, info, marker_names, do_arcsinh, cofactor):
     sample_list = []
     for fname in fnames:
         full_path = os.path.join(indir, fname)
-        fcs = parse(full_path)
-        x = [fcs.channels.index(name) for name in marker_names]
+        _, fcs = parse(full_path)
+        x = fcs.loc[:, marker_names]
         x = np.asarray(x)
         if do_arcsinh:
             x = ftrans(x, cofactor)
@@ -186,7 +186,6 @@ def generate_subsets(X, pheno_map, sample_id, nsubsets, ncell,
                      per_sample=False, k_init=False):
     S = dict()
     n_out = len(np.unique(sample_id))
-
     for ylabel in range(n_out):
         X_i = filter_per_class(X, sample_id, ylabel)
         if per_sample:

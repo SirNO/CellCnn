@@ -323,6 +323,9 @@ def train_model(train_samples, train_phenotypes, outdir,
     # generate multi-cell inputs
     print('Generating multi-cell inputs...')
 
+    X_tr, y_tr = None, None
+    X_v, y_v = None, None
+
     if subset_selection == 'outlier':
         # here we assume that class 0 is always the control class
         x_ctrl_train = X_train[y_train == 0]
@@ -381,14 +384,14 @@ def train_model(train_samples, train_phenotypes, outdir,
         else:
             nsubset_list = []
             for pheno in range(len(np.unique(train_phenotypes))):
-                nsubset_list.append(nsubset / np.sum(train_phenotypes == pheno))
+                nsubset_list.append(int(nsubset / np.sum(train_phenotypes == pheno)))
             X_tr, y_tr = generate_subsets(X_train, train_phenotypes, id_train,
                                           nsubset_list, ncell, per_sample)
 
             if (valid_samples is not None) or generate_valid_set:
                 nsubset_list = []
                 for pheno in range(len(np.unique(valid_phenotypes))):
-                    nsubset_list.append(nsubset / np.sum(valid_phenotypes == pheno))
+                    nsubset_list.append(int(nsubset / np.sum(valid_phenotypes == pheno)))
                 X_v, y_v = generate_subsets(X_valid, valid_phenotypes, id_valid,
                                             nsubset_list, ncell, per_sample)
     print('Done.')
@@ -525,10 +528,12 @@ def build_model(ncell, nmark, nfilter, coeff_l1, coeff_l2, coeff_activity,
     # the input layer
     data_input = Input(shape=(ncell, nmark))
 
+    activity_regularizer = activity_KL(l=coeff_activity, p=0.05)
+
     # the filters
     conv = Convolution1D(nfilter, 1, activation='linear',
                          W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
-                         activity_regularizer=activity_KL(l=coeff_activity, p=0.05),
+                         activity_regularizer=activity_regularizer,
                          name='conv1')(data_input)
     conv = Activation('relu')(conv)
     # the cell grouping part
