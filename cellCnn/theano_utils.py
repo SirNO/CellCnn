@@ -27,6 +27,7 @@ def kl_divergence(p, p_hat):
     return (p * K.log(p / p_hat)) + ((1-p) * K.log((1-p) / (1-p_hat)))
 
 class KL_ActivityRegularizer(Regularizer):
+    '''Does not work with Keras 2 API'''
     def __init__(self, l=0., p=0.1):
         self.l = K.cast_to_floatx(l)
         self.p = K.cast_to_floatx(p)
@@ -54,6 +55,7 @@ class KL_ActivityRegularizer(Regularizer):
                 'p': float(self.p)}
 
 def activity_KL(l=0.01, p=0.1):
+    '''Does not work with Keras 2 API'''
     return KL_ActivityRegularizer(l=l, p=p)
 
 class ParametricSigmoid(Layer):

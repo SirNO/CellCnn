@@ -91,7 +91,7 @@ def keras_param_vector(params):
     b = params[1]
     W_out = params[2]
     # store the (convolutional weights + biases + output weights) per filter
-    W_tot = np.hstack([W, b.reshape(-1, 1), W_out])
+    W_tot = np.hstack([W.transpose(), b.reshape(-1, 1), W_out])
     return W_tot
 
 def representative(data, metric='cosine', stop=None):

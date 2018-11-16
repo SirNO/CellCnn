@@ -18,11 +18,11 @@ from cellCnn.utils import cluster_profiles, keras_param_vector
 from cellCnn.utils import generate_subsets, generate_biased_subsets
 from cellCnn.utils import get_filters_classification, get_filters_regression
 from cellCnn.utils import mkdir_p
-from cellCnn.theano_utils import select_top, float32, int32, activity_KL
+from cellCnn.theano_utils import select_top, float32, int32
 
 from keras.layers import Input, Dense, Lambda, Activation, Dropout
 from keras.layers.convolutional import Convolution1D
-from keras.models import Model
+from keras.models import Model, Sequential
 from keras.optimizers import Adam
 from keras.regularizers import l1_l2
 from keras.callbacks import EarlyStopping, ModelCheckpoint
@@ -449,14 +449,14 @@ def train_model(train_samples, train_phenotypes, outdir,
                                         mode='auto')
                 earlyStopping = EarlyStopping(monitor='val_loss', patience=patience, mode='auto')
                 model.fit(float32(X_tr), int32(y_tr),
-                          nb_epoch=max_epochs, batch_size=bs, callbacks=[check, earlyStopping],
+                          epochs=max_epochs, batch_size=bs, callbacks=[check, earlyStopping],
                           validation_data=(float32(X_v), int32(y_v)), verbose=verbose)
             else:
                 check = ModelCheckpoint(filepath, monitor='val_loss', save_best_only=True,
                                         mode='auto')
                 earlyStopping = EarlyStopping(monitor='val_loss', patience=patience, mode='auto')
                 model.fit(float32(X_tr), float32(y_tr),
-                          nb_epoch=max_epochs, batch_size=bs, callbacks=[check, earlyStopping],
+                          epochs=max_epochs, batch_size=bs, callbacks=[check, earlyStopping],
                           validation_data=(float32(X_v), float32(y_v)), verbose=verbose)
 
             # load the model from the epoch with highest validation accuracy
@@ -524,15 +524,15 @@ def build_model(ncell, nmark, nfilter, coeff_l1, coeff_l2, coeff_activity,
                 k, dropout, dropout_p, regression, n_classes, lr=0.01):
 
     """ Builds the neural network architecture """
-
     # the input layer
     data_input = Input(shape=(ncell, nmark))
 
-    activity_regularizer = activity_KL(l=coeff_activity, p=0.05)
+    # TODO: Review activity regularizer
+    activity_regularizer = None
 
     # the filters
     conv = Convolution1D(nfilter, 1, activation='linear',
-                         W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
+                         kernel_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                          activity_regularizer=activity_regularizer,
                          name='conv1')(data_input)
     conv = Activation('relu')(conv)
@@ -541,17 +541,17 @@ def build_model(ncell, nmark, nfilter, coeff_l1, coeff_l2, coeff_activity,
 
     # possibly add dropout
     if dropout or ((dropout == 'auto') and (nfilter > 5)):
-        pooled = Dropout(p=dropout_p)(pooled)
+        pooled = Dropout(rate=dropout_p)(pooled)
 
     # network prediction output
     if not regression:
         output = Dense(n_classes, activation='softmax',
-                       W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
+                       kernel_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                        name='output')(pooled)
     else:
-        output = Dense(1, activation='tanh', W_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
+        output = Dense(1, activation='tanh', kernel_regularizer=l1_l2(l1=coeff_l1, l2=coeff_l2),
                        name='output')(pooled)
-    model = Model(input=data_input, output=output)
+    model = Model(inputs=data_input, outputs=output)
 
     if not regression:
         model.compile(optimizer=Adam(lr=lr),
